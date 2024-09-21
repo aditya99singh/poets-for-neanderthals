@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Card Game with Scoring</title>
+    <style>
+        /* Reset CSS */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom right, #74ebd5, #ACB6E5);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            width: 90%;
+            max-width: 800px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .scores {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+
+        .team-score {
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .team-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .team-buttons button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .team1-button {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .team1-button:hover {
+            background-color: #2980b9;
+        }
+
+        .team2-button {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .team2-button:hover {
+            background-color: #c0392b;
+        }
+
+        .card {
+            background-color: #fff;
+            width: 100%;
+            max-width: 500px;
+            height: 250px;
+            margin: 0 auto 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .word {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .compound {
+            font-size: 24px;
+            color: #7f8c8d;
+            margin-top: 15px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 15px;
+            padding: 10px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #27ae60;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #1e8449;
+        }
+
+        @media (max-width: 600px) {
+            .team-name {
+                font-size: 24px;
+            }
+
+            .score {
+                font-size: 36px;
+            }
+
+            .word {
+                font-size: 36px;
+            }
+
+            .compound {
+                font-size: 20px;
+            }
+
+            .nav-buttons button {
+                font-size: 16px;
+                padding: 8px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="scores">
+            <div class="team-score">
+                <div class="team-name" style="color: #3498db;">Team 1</div>
+                <div class="score" id="team1-score">0</div>
+                <div class="team-buttons">
+                    <button class="team1-button" onclick="addPoint(1)">Add Point</button>
+                    <button class="team1-button" onclick="subtractPoint(1)">Subtract Point</button>
+                </div>
+            </div>
+            <div class="team-score">
+                <div class="team-name" style="color: #e74c3c;">Team 2</div>
+                <div class="score" id="team2-score">0</div>
+                <div class="team-buttons">
+                    <button class="team2-button" onclick="addPoint(2)">Add Point</button>
+                    <button class="team2-button" onclick="subtractPoint(2)">Subtract Point</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="word" id="word"></div>
+            <div class="compound" id="compound"></div>
+        </div>
+        <div class="nav-buttons">
+            <button onclick="prevCard()">Previous</button>
+            <button onclick="nextCard()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const cardData = [
+            { word: "Quiz", compound: "Pop Quiz" },
+            { word: "Side", compound: "Bedside" },
+            { word: "Love", compound: "Love Letter" },
+            { word: "Mind", compound: "Mind Reader" },
+            { word: "Tongue", compound: "Tongue-tied" },
+            { word: "Skin", compound: "Snake Skin" },
+            { word: "Hair", compound: "Bad Hair Day" },
+            { word: "Split", compound: "Split Ends" },
+            { word: "Talk", compound: "Talk Radio" },
+            { word: "Ghost", compound: "Ghost Town" },
+            { word: "Fence", compound: "Electric Fence" },
+            { word: "Window", compound: "Window Shopping" },
+            { word: "Taco", compound: "Taco Salad" },
+            { word: "Wedding", compound: "Wedding Ring" },
+            { word: "Tape", compound: "Tape Recorder" },
+            { word: "Fall", compound: "Trust Fall" },
+            { word: "Wife", compound: "Trophy Wife" },
+            { word: "Toilet", compound: "Toilet Paper" },
+            { word: "Sun", compound: "Sunburn" },
+            { word: "Golf", compound: "Mini Golf" },
+            { word: "Doughnut", compound: "Glazed Doughnut" },
+            { word: "Toy", compound: "Toy Poodle" },
+            { word: "Wash", compound: "Dishwasher" },
+            { word: "Walk", compound: "Sleep Walking" },
+            { word: "Empty", compound: "Empty Calories" },
+            { word: "Email", compound: "Email Scam" },
+            { word: "Frog", compound: "Leap Frog" },
+            { word: "Family", compound: "Crime Family" },
+            { word: "Spoon", compound: "Measuring Spoon" },
+            { word: "Taste", compound: "Taste Buds" },
+            { word: "Funeral", compound: "Funeral Home" },
+            { word: "Gold", compound: "Gold Rush" },
+            { word: "Whale", compound: "Beached Whale" },
+            { word: "Bank", compound: "Bank Robber" },
+            { word: "Newspaper", compound: "Newspaper Headline" },
+            { word: "Sink", compound: "Sinkhole" },
+            { word: "Refrigerator", compound: "Refrigerator Sale" },
+            { word: "Tall", compound: "Tall Order" },
+            { word: "Fry", compound: "French Fry" },
+            { word: "Glove", compound: "Boxing Glove" },
+            { word: "Blood", compound: "Blood Bank" },
+            { word: "Fruit", compound: "Fruitcake" },
+            { word: "Happy", compound: "Happy Hour" },
+            { word: "Sweat", compound: "Cold Sweat" },
+            { word: "Hat", compound: "Top Hat" },
+            { word: "Suit", compound: "Bathing Suit" },
+            { word: "Voice", compound: "Voicemail" },
+            { word: "Teacher", compound: "Substitute Teacher" },
+            { word: "Surgery", compound: "Plastic Surgery" },
+            { word: "Handle", compound: "Handlebar" },
+            { word: "Book", compound: "Book Worm" },
+            { word: "Fire", compound: "Fire Drill" },
+            { word: "Snow", compound: "Snow Globe" },
+            { word: "Foot", compound: "Foot Locker" },
+            { word: "Bubble", compound: "Bubble Bath" },
+            { word: "Jelly", compound: "Jellyfish" },
+            { word: "Honey", compound: "Honeymoon" },
+            { word: "Eye", compound: "Eye Candy" },
+            { word: "Tooth", compound: "Tooth Fairy" },
+            { word: "Finger", compound: "Finger Paint" },
+            { word: "Nose", compound: "Nose Dive" },
+            { word: "Ear", compound: "Eardrum" },
+            { word: "Lip", compound: "Lip Sync" },
+            { word: "Hand", compound: "Handshake" },
+            { word: "Arm", compound: "Armchair" },
+            { word: "Leg", compound: "Leg Room" },
+            { word: "Heart", compound: "Heartbeat" },
+            { word: "Brain", compound: "Brainstorm" },
+            { word: "Lung", compound: "Lung Cancer" },
+            { word: "Bone", compound: "Bone Marrow" },
+            { word: "Muscle", compound: "Muscle Car" },
+            { word: "Blood", compound: "Bloodhound" },
+            { word: "Skin", compound: "Skincare" },
+            { word: "Nail", compound: "Nail Polish" },
+            { word: "Hair", compound: "Haircut" },
+            { word: "Head", compound: "Headache" },
+            { word: "Face", compound: "Face Mask" },
+            { word: "Neck", compound: "Necklace" },
+            { word: "Back", compound: "Backpack" },
+            { word: "Chest", compound: "Chest Pain" },
+            { word: "Stomach", compound: "Stomachache" },
+            { word: "Hip", compound: "Hip Hop" },
+            { word: "Knee", compound: "Kneecap" },
+            { word: "Ankle", compound: "Ankle Brace" },
+            { word: "Foot", compound: "Footprint" },
+            { word: "Toe", compound: "Toenail" },
+            { word: "Finger", compound: "Fingertip" },
+            { word: "Palm", compound: "Palm Tree" },
+            { word: "Wrist", compound: "Wristwatch" },
+            { word: "Elbow", compound: "Elbow Grease" },
+            { word: "Shoulder", compound: "Shoulder Blade" },
+            { word: "Chin", compound: "Chin-up" },
+            { word: "Cheek", compound: "Cheekbone" },
+            { word: "Forehead", compound: "Forehead Thermometer" },
+            { word: "Eyebrow", compound: "Eyebrow Pencil" },
+            { word: "Eyelash", compound: "Eyelash Curler" },
+            { word: "Nostril", compound: "Nostril Hair" },
+            { word: "Tongue", compound: "Tongue Twister" },
+            { word: "Throat", compound: "Throat Lozenge" },
+            { word: "Neck", compound: "Neck Tie" },
+            { word: "Collar", compound: "Collar Bone" },
+            { word: "Waist", compound: "Waistline" },
+            { word: "Belt", compound: "Belt Buckle" },
+            { word: "Pocket", compound: "Pocket Watch" },
+            { word: "Button", compound: "Button Down" },
+            { word: "Zipper", compound: "Zipper Pull" },
+            { word: "Shoe", compound: "Shoelace" },
+            { word: "Sock", compound: "Sock Puppet" },
+            { word: "Hat", compound: "Hat Trick" },
+            { word: "Glove", compound: "Glove Compartment" },
+            { word: "Scarf", compound: "Scarf Joint" },
+            { word: "Coat", compound: "Coat Hanger" },
+            { word: "Dress", compound: "Dress Code" },
+            { word: "Shirt", compound: "Shirt Collar" },
+            { word: "Pants", compound: "Pants Suit" },
+            { word: "Skirt", compound: "Skirt Steak" },
+            { word: "Jacket", compound: "Jacket Potato" },
+            { word: "Sweater", compound: "Sweater Weather" },
+            { word: "Underwear", compound: "Underwear Model" },
+            { word: "Pajamas", compound: "Pajama Party" },
+            { word: "Glasses", compound: "Glasses Case" },
+            { word: "Watch", compound: "Watch Dog" },
+            { word: "Ring", compound: "Ring Finger" },
+            { word: "Bracelet", compound: "Bracelet Clasp" },
+            { word: "Earring", compound: "Earring Back" },
+            { word: "Necklace", compound: "Necklace Pendant" },
+            { word: "Wallet", compound: "Wallet Chain" },
+            { word: "Purse", compound: "Purse Strings" },
+            { word: "Backpack", compound: "Backpack Straps" },
+            { word: "Umbrella", compound: "Umbrella Stand" },
+            { word: "Key", compound: "Key Chain" },
+            { word: "Phone", compound: "Phone Booth" },
+            { word: "Computer", compound: "Computer Virus" },
+            { word: "Camera", compound: "Camera Shy" },
+            { word: "Television", compound: "Television Set" },
+            { word: "Radio", compound: "Radio Wave" },
+            { word: "Clock", compound: "Clock Tower" },
+            { word: "Lamp", compound: "Lamp Shade" },
+            { word: "Chair", compound: "Chair Lift" },
+            { word: "Table", compound: "Table Tennis" },
+            { word: "Bed", compound: "Bed Bug" },
+            { word: "Pillow", compound: "Pillow Fight" },
+            { word: "Blanket", compound: "Blanket Statement" },
+            { word: "Mirror", compound: "Mirror Image" },
+            { word: "Picture", compound: "Picture Frame" },
+            { word: "Book", compound: "Book Club" },
+            { word: "Sun", compound: "Sunflower" },
+            { word: "Moon", compound: "Moonwalk" },
+            { word: "Star", compound: "Starfish" },
+            { word: "Cloud", compound: "Cloud Computing" },
+            { word: "Rain", compound: "Rainbow" },
+            { word: "Snow", compound: "Snowman" },
+            { word: "Wind", compound: "Windmill" },
+            { word: "Fire", compound: "Firefly" },
+            { word: "Water", compound: "Waterfall" },
+            { word: "Earth", compound: "Earthquake" },
+            { word: "Mountain", compound: "Mountain Climber" },
+            { word: "River", compound: "Riverbank" },
+            { word: "Beach", compound: "Beach Ball" },
+            { word: "Ball", compound: "Ballroom" },
+            { word: "Room", compound: "Roommate" },
+            { word: "Mate", compound: "Classmate" },
+            { word: "Class", compound: "Classroom" },
+            { word: "School", compound: "School Bus" },
+            { word: "Bus", compound: "Bus Stop" },
+            { word: "Stop", compound: "Pit Stop" },
+            { word: "Pit", compound: "Cherry Pit" },
+            { word: "Cherry", compound: "Cherry Blossom" },
+            { word: "Blossom", compound: "Blossom Tree" },
+            { word: "Tree", compound: "Treehouse" },
+            { word: "Branch", compound: "Branch Office" },
+            { word: "Office", compound: "Office Space" },
+            { word: "Space", compound: "Space Ship" },
+            { word: "Ship", compound: "Shipwreck" },
+            { word: "Wreck", compound: "Train Wreck" },
+            { word: "Train", compound: "Train Station" },
+            { word: "Station", compound: "Police Station" },
+            { word: "Police", compound: "Police Officer" },
+            { word: "Officer", compound: "Chief Officer" },
+            { word: "Chief", compound: "Chief Executive" },
+            { word: "Executive", compound: "Executive Order" },
+            { word: "Order", compound: "Order Number" },
+            { word: "Number", compound: "Serial Number" },
+            { word: "Serial", compound: "Serial Killer" },
+            { word: "Killer", compound: "Killer Instinct" },
+            { word: "Instinct", compound: "Survival Instinct" },
+            { word: "Survival", compound: "Survival Guide" },
+            { word: "Guide", compound: "Tour Guide" },
+            { word: "Tour", compound: "Tourist Attraction" },
+            { word: "Attraction", compound: "Main Attraction" },
+            { word: "Main", compound: "Main Street" },
+            { word: "Street", compound: "Street Light" },
+            { word: "Light", compound: "Light Bulb" },
+            { word: "Bulb", compound: "Flower Bulb" },
+            { word: "Flower", compound: "Flower Pot" },
+            { word: "Pot", compound: "Cooking Pot" },
+            { word: "Cooking", compound: "Cooking Oil" },
+            { word: "Oil", compound: "Oil Painting" },
+            { word: "Painting", compound: "Painting Class" },
+            { word: "Supplies", compound: "Art Supplies" },
+            { word: "Medical", compound: "Medical Exam" },
+            { word: "Exam", compound: "Final Exam" },
+            { word: "Final", compound: "Final Destination" },
+            { word: "Destination", compound: "Vacation Destination" },
+            { word: "Vacation", compound: "Vacation Spot" },
+            { word: "Spot", compound: "Spot Check" },
+            { word: "Check", compound: "Check Point" },
+            { word: "Point", compound: "Point Blank" },
+            { word: "Blank", compound: "Blank Page" },
+            { word: "Page", compound: "Web Page" },
+            { word: "Web", compound: "Web Browser" },
+            { word: "Browser", compound: "Internet Browser" },
+            { word: "Internet", compound: "Internet Connection" },
+            { word: "Connection", compound: "Connection Error" },
+            { word: "Error", compound: "Error Message" },
+            { word: "Message", compound: "Text Message" },
+            { word: "Text", compound: "Text Editor" },
+            { word: "Editor", compound: "Editor-in-Chief" },
+            { word: "Chief", compound: "Fire Chief" },
+            { word: "Fire", compound: "Fire Alarm" },
+            { word: "Alarm", compound: "Alarm Clock" },
+            { word: "Clock", compound: "Clock Tower" },
+            { word: "Tower", compound: "Tower Bridge" },
+            { word: "Bridge", compound: "Bridge Loan" },
+            { word: "Loan", compound: "Loan Shark" },
+            { word: "Shark", compound: "Shark Tank" },
+            { word: "Tank", compound: "Tank Top" },
+            { word: "Top", compound: "Top Hat" },
+            { word: "Hat", compound: "Hat Stand" },
+            { word: "Stand", compound: "Lemonade Stand" },
+            { word: "Lemonade", compound: "Lemonade Mix" },
+            { word: "Mix", compound: "Mix Tape" },
+            { word: "Tape", compound: "Tape Measure" },
+            { word: "Measure", compound: "Measure Twice" },
+            { word: "Twice", compound: "Think Twice" },
+            { word: "Think", compound: "Think Tank" },
+            { word: "Tank", compound: "Fish Tank" },
+            { word: "Fish", compound: "Fish Bowl" },
+            { word: "Bowl", compound: "Super Bowl" },
+            { word: "Super", compound: "Super Hero" },
+            { word: "Hero", compound: "Hero Worship" },
+            { word: "Worship", compound: "Worship Service" },
+            { word: "Service", compound: "Service Dog" },
+            { word: "Dog", compound: "Dog Park" },
+            { word: "Park", compound: "Park Bench" },
+            { word: "Bench", compound: "Bench Press" },
+            { word: "Press", compound: "Press Release" },
+            { word: "Release", compound: "Release Date" },
+            { word: "Date", compound: "Date Night" },
+            { word: "Night", compound: "Night Owl" },
+            { word: "Owl", compound: "Owl Pellet" },
+            { word: "Pellet", compound: "Pellet Gun" },
+            { word: "Gun", compound: "Gun Powder" },
+            { word: "Powder", compound: "Powder Room" },
+            { word: "Room", compound: "Room Service" },
+            { word: "Service", compound: "Service Industry" },
+            { word: "Industry", compound: "Industry Standard" },
+            { word: "Standard", compound: "Standard Deviation" },
+            { word: "Deviation", compound: "Standard Deviation" },
+            { word: "Standard", compound: "Gold Standard" },
+            { word: "Gold", compound: "Gold Medal" },
+            { word: "Medal", compound: "Medal Ceremony" },
+            { word: "Ceremony", compound: "Wedding Ceremony" },
+            { word: "Wedding", compound: "Wedding Cake" },
+            { word: "Cake", compound: "Cake Batter" },
+            { word: "Batter", compound: "Batter Up" },
+            { word: "Up", compound: "Up Hill" },
+            { word: "Hill", compound: "Hill Top" },
+            { word: "Top", compound: "Top Secret" },
+            { word: "Secret", compound: "Secret Agent" },
+            { word: "Agent", compound: "Agent Orange" },
+            { word: "Orange", compound: "Orange Juice" },
+            { word: "Juice", compound: "Juice Box" },
+            { word: "Box", compound: "Box Office" },
+            { word: "Office", compound: "Office Chair" },
+            { word: "Chair", compound: "Chair Person" },
+            { word: "Person", compound: "Person Hood" },
+            { word: "Hood", compound: "Hood Ornament" }
+        ];
+
+        let currentCardIndex = 0;
+        let team1Score = 0;
+        let team2Score = 0;
+
+        function updateCard() {
+            document.getElementById('word').textContent = cardData[currentCardIndex].word;
+            document.getElementById('compound').textContent = cardData[currentCardIndex].compound;
+        }
+
+        function nextCard() {
+            currentCardIndex = (currentCardIndex + 1) % cardData.length;
+            updateCard();
+        }
+
+        function prevCard() {
+            currentCardIndex = (currentCardIndex - 1 + cardData.length) % cardData.length;
+            updateCard();
+        }
+
+        function updateScores() {
+            document.getElementById('team1-score').textContent = team1Score;
+            document.getElementById('team2-score').textContent = team2Score;
+        }
+
+        function addPoint(teamNumber) {
+            if (teamNumber === 1) {
+                team1Score++;
+            } else if (teamNumber === 2) {
+                team2Score++;
+            }
+            updateScores();
+        }
+
+        function subtractPoint(teamNumber) {
+            if (teamNumber === 1 && team1Score > 0) {
+                team1Score--;
+            } else if (teamNumber === 2 && team2Score > 0) {
+                team2Score--;
+            }
+            updateScores();
+        }
+
+        // Initialize the game
+        updateCard();
+        updateScores();
+    </script>
+</body>
+</html>
